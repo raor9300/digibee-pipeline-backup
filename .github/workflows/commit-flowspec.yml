@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install digibeectl
         run: |
@@ -23,47 +24,61 @@ jobs:
           curl -s https://storage.googleapis.com/digibee-release-test/releases/install.sh | bash
           digibeectl --help
 
-      - name: Configure Digibee authentication
-        env:
-          DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
-          DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
-        run: |
-          echo "Digibee authentication configured"
-
-      - name: Download flowspec
-        env:
-          DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
-          DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
-        run: |
-          echo "Getting flowspec"
-
-      - name: Extract metadata
+      # ----------------------------
+      # Extract metadata
+      # ----------------------------
+      - name: Read metadata.json
         run: |
           echo "PIPELINE=$(jq -r .pipelineName metadata.json)" >> "$GITHUB_ENV"
           echo "MAJ_VERSION=$(jq -r .majorVersion metadata.json)" >> "$GITHUB_ENV"
 
+      # ----------------------------
+      # Resolve PIPELINE_ID safely
+      # ----------------------------
       - name: Resolve pipeline ID
         env:
           DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
           DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
         run: |
-          echo "PIPELINE_ID=$(digibeectl get pipeline --name $PIPELINE | awk -v pipe="$PIPELINE" -v maj_ver="$MAJ_VERSION" '{if (($1 == pipe) && ($3 ~ maj_ver)) { print $2 }}')" >> "$GITHUB_ENV"
+          PIPELINE_ID=$(digibeectl get pipeline --name "$PIPELINE" \
+            | awk -v pipe="$PIPELINE" -v maj="$MAJ_VERSION" '
+              $1 == pipe && index($0, maj) { print $2; exit }
+            ')
 
+          if [ -z "$PIPELINE_ID" ]; then
+            echo "❌ Pipeline not found: name=$PIPELINE version=$MAJ_VERSION"
+            echo "Available pipelines:"
+            digibeectl get pipeline --name "$PIPELINE"
+            exit 1
+          fi
+
+          echo "PIPELINE_ID=$PIPELINE_ID" >> "$GITHUB_ENV"
+
+      # ----------------------------
+      # Download flowspec
+      # ----------------------------
       - name: Download flowspec
         env:
           DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
           DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
         run: |
-          digibeectl get pipeline --pipeline-id $PIPELINE_ID --flowspec | jq . > flowspec.json
+          digibeectl get pipeline --pipeline-id "$PIPELINE_ID" --flowspec \
+            | jq . > flowspec.json
 
-      - name: Create commit note
+      # ----------------------------
+      # Add audit note
+      # ----------------------------
+      - name: Add githubbot note
         run: |
           echo "Modified by githubbot at $(date)" >> githubbot.md
 
+      # ----------------------------
+      # Commit changes
+      # ----------------------------
       - name: Commit with GITHUB_TOKEN
         run: |
           git config user.email github-actions[bot]@users.noreply.github.com
           git config user.name "GitHub Actions Bot"
           git add flowspec.json githubbot.md
-          git commit -m "Automatic commit by githubactions [skip actions]"
+          git commit -m "Automatic commit by githubactions [skip actions]" || echo "No changes to commit"
           git push
