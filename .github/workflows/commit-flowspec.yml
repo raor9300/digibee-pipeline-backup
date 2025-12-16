@@ -15,8 +15,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ----------------------------
+      # Checkout repository
+      # ----------------------------
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install digibeectl
         run: |
@@ -31,24 +34,38 @@ jobs:
         run: |
           echo "PIPELINE=$(jq -r .pipelineName metadata.json)" >> "$GITHUB_ENV"
           echo "MAJ_VERSION=$(jq -r .majorVersion metadata.json)" >> "$GITHUB_ENV"
-
+      
       # ----------------------------
-      # Resolve PIPELINE_ID safely
+      # Configure digibeectl
       # ----------------------------
-      - name: Resolve pipeline ID
+      - name: Configure digibeectl with JSON + keys
         env:
-          DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
-          DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
+          DIGIBEE_TOKEN: ${{ secrets.TOKEN }}
+          DIGIBEE_KEY: ${{ secrets.KEY }}
+          DIGIBEE_PASS: ${{ secrets.PASS }}
         run: |
-          PIPELINE_ID=$(digibeectl get pipeline --name "$PIPELINE" \
-            | awk -v pipe="$PIPELINE" -v maj="$MAJ_VERSION" '
-              $1 == pipe && index($0, maj) { print $2; exit }
+          mkdir -p ~/.digibeectl
+          echo "$DIGIBEE_TOKEN" > ~/.digibeectl/token.json
+          digibeectl config set --file ~/.digibeectl/token.json \
+                                --secret-key "$DIGIBEE_KEY" \
+                                --auth-key "$DIGIBEE_PASS"
+      
+      # ----------------------------
+      # Resolve PIPELINE_ID
+      # ----------------------------
+      - name: Resolve PIPELINE_ID from JSON
+        env:
+          PIPELINE: ${{ env.PIPELINE }}
+          MAJ_VERSION: ${{ env.MAJ_VERSION }}
+        run: |
+          PIPELINE_ID=$(digibeectl get pipeline --name "$PIPELINE" --output json \
+            | jq -r --arg PIPE "$PIPELINE" --arg MAJ "$MAJ_VERSION" '
+                .[] | select(.pipelineName == $PIPE and (.version | startswith($MAJ))) | .pipelineId
             ')
-
+          
           if [ -z "$PIPELINE_ID" ]; then
             echo "❌ Pipeline not found: name=$PIPELINE version=$MAJ_VERSION"
-            echo "Available pipelines:"
-            digibeectl get pipeline --name "$PIPELINE"
+            digibeectl get pipeline --name "$PIPELINE" --output json | jq
             exit 1
           fi
 
@@ -58,9 +75,6 @@ jobs:
       # Download flowspec
       # ----------------------------
       - name: Download flowspec
-        env:
-          DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
-          DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
         run: |
           digibeectl get pipeline --pipeline-id "$PIPELINE_ID" --flowspec \
             | jq . > flowspec.json
@@ -70,12 +84,12 @@ jobs:
       # ----------------------------
       - name: Add githubbot note
         run: |
-          echo "Modified by githubbot at $(date)" >> githubbot.md
+          echo "Modified by githubbot at $(date) on branch $GITHUB_REF" >> githubbot.md
 
       # ----------------------------
       # Commit changes
       # ----------------------------
-      - name: Commit with GITHUB_TOKEN
+      - name: Commit and push changes
         run: |
           git config user.email github-actions[bot]@users.noreply.github.com
           git config user.name "GitHub Actions Bot"
