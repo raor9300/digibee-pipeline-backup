@@ -25,7 +25,17 @@ jobs:
           digibeectl --help
 
       # ----------------------------
-      # Extract metadata
+      # Configure digibeectl (REQUIRED)
+      # ----------------------------
+      - name: Configure Digibee credentials
+        run: |
+          mkdir -p ~/.digibeectl
+          digibeectl config set \
+            --auth-key "${{ secrets.PASS }}" \
+            --secret-key "${{ secrets.KEY }}"
+
+      # ----------------------------
+      # Read metadata
       # ----------------------------
       - name: Read metadata.json
         run: |
@@ -33,12 +43,9 @@ jobs:
           echo "MAJ_VERSION=$(jq -r .majorVersion metadata.json)" >> "$GITHUB_ENV"
 
       # ----------------------------
-      # Resolve PIPELINE_ID safely
+      # Resolve pipeline ID
       # ----------------------------
       - name: Resolve pipeline ID
-        env:
-          DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
-          DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
         run: |
           PIPELINE_ID=$(digibeectl get pipeline --name "$PIPELINE" \
             | awk -v pipe="$PIPELINE" -v maj="$MAJ_VERSION" '
@@ -58,9 +65,6 @@ jobs:
       # Download flowspec
       # ----------------------------
       - name: Download flowspec
-        env:
-          DIGIBEE_AUTH_KEY: ${{ secrets.PASS }}
-          DIGIBEE_SECRET_KEY: ${{ secrets.KEY }}
         run: |
           digibeectl get pipeline --pipeline-id "$PIPELINE_ID" --flowspec \
             | jq . > flowspec.json
