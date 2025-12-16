@@ -1,0 +1,16 @@
+{
+  "start": [
+    {
+      "__documentation__": "",
+      "doubleBracesAlias": "json-generator-1",
+      "id": "5db88901-1cbd-405c-bec3-dac050b8e51c",
+      "name": "json-generator-connector",
+      "params": {
+        "failOnError": false,
+        "json": "{}"
+      },
+      "stepName": "JSON Generator",
+      "type": "connector"
+    }
+  ]
+}
