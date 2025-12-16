@@ -17,7 +17,7 @@ jobs:
       ## install digibeectl - Only required if you are using github runners. If you are using hosted runners it is not necessary to install digibeectl on each run.
       - name: Install digibeectl
         run: |
-            echo "Installing digibeectl"
+            echo "Installings digibeectl"
             curl -s https://storage.googleapis.com/digibee-release-test/releases/install.sh | bash
             echo ${{secrets.TOKEN}} > token.json
             digibeectl config set --file "token.json" --secret-key "${{secrets.KEY}}" --auth-key "${{secrets.PASS}}"
