@@ -30,9 +30,12 @@ jobs:
       - name: Configure Digibee credentials
         run: |
           mkdir -p ~/.digibeectl
+          touch ~/.digibeectl/config.enc
+
           digibeectl config set \
             --auth-key "${{ secrets.PASS }}" \
-            --secret-key "${{ secrets.KEY }}"
+            --secret-key "${{ secrets.KEY }}" \
+            --file ~/.digibeectl/config.enc
 
       # ----------------------------
       # Read metadata
