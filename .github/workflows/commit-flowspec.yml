@@ -44,9 +44,19 @@ jobs:
           DIGIBEE_KEY: ${{ secrets.KEY }}
           DIGIBEE_PASS: ${{ secrets.PASS }}
         run: |
+          # Validate secrets
+          if [ -z "$DIGIBEE_TOKEN" ] || [ -z "$DIGIBEE_KEY" ] || [ -z "$DIGIBEE_PASS" ]; then
+            echo "❌ Missing one or more digibeectl credentials"
+            exit 1
+          fi
+           
+          # Create config directory  
           mkdir -p ~/.digibeectl
-          echo "Token found: token=$DIGIBEE_TOKEN"
+          
+          # Save token JSON safely
           echo "$DIGIBEE_TOKEN" > ~/.digibeectl/token.json
+          
+          # Configure digibeectl
           digibeectl config set --file ~/.digibeectl/token.json \
                                 --secret-key "$DIGIBEE_KEY" \
                                 --auth-key "$DIGIBEE_PASS"
