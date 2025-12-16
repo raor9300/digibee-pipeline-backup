@@ -98,3 +98,4 @@ jobs:
           git add flowspec.json githubbot.md
           git commit -m "Automatic commit by githubactions [skip actions]" || echo "No changes to commit"
           git push
+          
