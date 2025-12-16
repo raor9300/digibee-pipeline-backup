@@ -45,6 +45,7 @@ jobs:
           DIGIBEE_PASS: ${{ secrets.PASS }}
         run: |
           mkdir -p ~/.digibeectl
+          echo "Token found: token=$DIGIBEE_TOKEN"
           echo "$DIGIBEE_TOKEN" > ~/.digibeectl/token.json
           digibeectl config set --file ~/.digibeectl/token.json \
                                 --secret-key "$DIGIBEE_KEY" \
