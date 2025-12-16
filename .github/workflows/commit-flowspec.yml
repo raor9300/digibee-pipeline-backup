@@ -60,18 +60,20 @@ jobs:
           PIPELINE: ${{ env.PIPELINE }}
           MAJ_VERSION: ${{ env.MAJ_VERSION }}
         run: |
-          PIPELINE_ID=$(digibeectl get pipeline --name "$PIPELINE" --output json \
-            | jq -r --arg PIPE "$PIPELINE" --arg MAJ "$MAJ_VERSION" '
-                .[] | select(.pipelineName == $PIPE and (.version | startswith($MAJ))) | .pipelineId
-            ')
-          
-          if [ -z "$PIPELINE_ID" ]; then
-            echo "❌ Pipeline not found: name=$PIPELINE version=$MAJ_VERSION"
-            digibeectl get pipeline --name "$PIPELINE" --output json | jq
-            exit 1
-          fi
+            PIPELINE_ID=$(digibeectl get pipeline --name "$PIPELINE" --output json \
+              | jq -r --arg PIPE "$PIPELINE" --arg MAJ "$MAJ_VERSION" '
+                  .content[]
+                  | select(._id.name == $PIPE and (._id.versionMajor|tostring) == $MAJ)
+                  | .latest._id
+              ')
 
-          echo "PIPELINE_ID=$PIPELINE_ID" >> "$GITHUB_ENV"
+            if [ -z "$PIPELINE_ID" ]; then
+              echo "❌ Pipeline not found: name=$PIPELINE version=$MAJ_VERSION"
+              digibeectl get pipeline --name "$PIPELINE" --output json | jq
+              exit 1
+            fi
+
+            echo "PIPELINE_ID=$PIPELINE_ID" >> "$GITHUB_ENV"
 
       # ----------------------------
       # Download flowspec
