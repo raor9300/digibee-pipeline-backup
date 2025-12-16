@@ -43,23 +43,14 @@ jobs:
           DIGIBEE_TOKEN: ${{ secrets.TOKEN }}
           DIGIBEE_KEY: ${{ secrets.KEY }}
           DIGIBEE_PASS: ${{ secrets.PASS }}
-        run: |
-          # Validate secrets
-          if [ -z "$DIGIBEE_TOKEN" ] || [ -z "$DIGIBEE_KEY" ] || [ -z "$DIGIBEE_PASS" ]; then
-            echo "❌ Missing one or more digibeectl credentials"
-            exit 1
-          fi
-           
-          # Create config directory  
+        run: |  
           mkdir -p ~/.digibeectl
-          
-          # Save token JSON safely
-          echo "$DIGIBEE_TOKEN" > ~/.digibeectl/token.json
-          
-          # Configure digibeectl
+          cat <<EOF > ~/.digibeectl/token.json
+          {"data":"A5sB8k33dB9EImRA4ynAEWQ/X8g1AeX51DNxwv+4t3hk8zM+EFzS2mS62y+71TcmHb6inrDzy3FwoSoK/AeW96Y1Qcpf6/MnPIdyNzVGLm1KnJo8VwTWbEjiCUusC++x9jbGV1vNVj9qnCBUdHpP6uIgo/HJi5NOunEA64xODRqdWwhuaXk9pNzCjjsIf61PelwrbYCawd6RKrkObovt54AUaPviWrxC7BUWNpkTG5fh12EM/669vRP8LvBIibLQcDarphnyQn190CepsCOq6u8HZ/f9LMNi+X27c/AwfnbOujqMW/Z7TKfssRe27AzSgu28iQ5odB7qnqGBo5BE2+5oGB04T9Mrp9nhZQX/JHlXawdU7Js2uPT9EhtpJqPOld2g1lxasFCscEkDfWr/hpUPnrXgg0Ad51xGP0NopCSeBDPl7ndZ3R5LSJ5EH/7IFbTr7oXPTqBCHrkYdsXNyIkNuC8nd7F4C86IVvHmp5Tnq49UoyZlXosHtDo2FgWS3GafEoCUs9U1w8pUdI4jykDuYWEBOTNYM97NKjnoE1QTpVExWYPW+Jms9JCp+vHMpHWaP9HZd23pGxBceIXlKL0G0hxGltpLRD1mW0p62z4OX8VC7cr7fDSXChhbs61/yfvaueTNIlC7cwa6h9F6b7aAR2+okoUFbsuxHj0eCy9c6hgjLKpj4QbO3oAIx3JcSZMCMeH375lS1U2C7kt043ey6t+P1rB2a4MQyDXr1hF+invplQU+SwVlPyjVgdLMD1Z0OZQSQos6WBGcvt7B7r4XqcPS/VI300VJG8uEeIvc6UnwRTHAbaaQ0N6TF0G7cAjwqRAOP4OPYt16AEu9gbptiQP+QLXbvY6b3dIaL/pkkHDymopyzyc7Zhi5NlyUBXz7kvqPTA7kjLwUUoD93h2G5J3q/0qqdzb10Rb8H9Leq2G1V8JZa3KXlAVIB6ccpXo/rki+UOc2F/xEFZqBYIE1RtT4JZMAFeXGYgOLcrB5wDzjQRnYkWKP2CcsO5q7hJkq/QqbfJBg1R4lAIauGrWq0JCKc3OT3G8x0zyKlWSQpWnQyN7EG0pZq2qPMUe2GhvMypnNEFXBFB/N8XS4/RCM4v4A2e7+vYkZL4Kp2E/sM7OE848gYNHk9NNlXlFDJoe6EMkRC2XS0K5pe3UG0v9ERycb21RYQoylc3FMTG9iVNPa6OP+BDsz0WhPmZ6+7tLJiQIbbsoFAGdl8NlTAiXY2fHtod7j//SX53y3Y7jrdkVD1RG9AdJEe7rxwUawQ4lpfZCRoJxM0PxquaZOZMcffslTSe2j+qSEfEmwOhzxE9OcB8xUakGlzzW4W5ZeYU5QitXR5nrvil27F8ZsjsJFIWOxMi9M5Z33MIacR3X9TNGTT0xqk7RGaXkQe1N5KnaceS3nJL5zpuL2+s7pb7iH0zrmER5EFp1wkGPZGPesXeNu7AgcdY1F+NL5vGNiJFoznawDCVvSKueiMv+sewb5MyK28RM+f9c9RjW2EaEgAlC5VnZLmpvt4VBKvEv37jACUj1m+M8EIgGdkOTlWQ15HxGF73PRF4WAnqChXRdOt+dJxuMUsq30EA7NRTpSoY3Blyt1CcogcGcaIweXurDztZk/D2u8+R2meicKznw8TpNvmg7IHcd/9/rbRylcS61LOu1WeigUwAZ9d4pzsR2h2zmbvmwFbT/49s8Ymm7OoK7se0/bgbg3Yoxm6VYXimFrVW0lgYufVv8ZA1bjhdRb2G4fyT743SrMy/5fZ2wzZRWs/Anzum99UodSUj0Nu+m/dr/CuXAgm0fIuFPE3Wy5vrZ+jb0TBx6T3KAksu1nZOqBxALloZGLYjb902dA1aloC2C3awxY/YqU/OX8JYwnwxgzlTekYBpMhzfP/XsTeC6MOFocJsmwVWCvNY8VqNdByKRQba8h15b1sj4B518o0Vk=","configVersion":"1.0"   }
+          EOF
           digibeectl config set --file ~/.digibeectl/token.json \
-                                --secret-key "$DIGIBEE_KEY" \
-                                --auth-key "$DIGIBEE_PASS"
+                                --secret-key "YTdiYmI4Yzg0Y2JjNDQ3YQ==" \
+                                --auth-key "KarthikTest226"
       
       # ----------------------------
       # Resolve PIPELINE_ID
