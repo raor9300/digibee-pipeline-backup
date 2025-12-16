@@ -30,8 +30,11 @@ jobs:
       - name: Configure Digibee credentials
         run: |
           mkdir -p ~/.digibeectl
-          touch ~/.digibeectl/config.enc
+          
+          # Write token to file (MUST NOT be empty)
+          echo "${{ secrets.TOKEN }}" > ~/.digibeectl/config.enc
 
+          # Set config with non-empty file
           digibeectl config set \
             --auth-key "${{ secrets.PASS }}" \
             --secret-key "${{ secrets.KEY }}" \
